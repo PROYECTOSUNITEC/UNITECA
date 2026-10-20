@@ -1,0 +1,9 @@
+# Configuración de Ruff (lint + formato) usada por el CI
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations", ".venv", "venv"]
+
+[lint]
+# E/W: estilo, F: errores, I: orden de imports, B: bugs comunes,
+# UP: sintaxis moderna, DJ: buenas prácticas de Django
+select = ["E", "W", "F", "I", "B", "UP", "DJ"]
