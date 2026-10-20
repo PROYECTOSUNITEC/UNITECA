@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uniteca}
+      POSTGRES_USER: ${POSTGRES_USER:-uniteca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uniteca}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT_HOST:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-uniteca} -d ${POSTGRES_DB:-uniteca}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uniteca}
+      POSTGRES_USER: ${POSTGRES_USER:-uniteca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uniteca}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      DEBUG: ${DEBUG:-1}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-me}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
