@@ -2,7 +2,11 @@ from rest_framework import viewsets
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from .models import CategoriaDocumento, Documento, LineaInvestigacion
-from .serializers import CategoriaDocumentoSerializer, DocumentoSerializer, LineaInvestigacionSerializer
+from .serializers import (
+    CategoriaDocumentoSerializer,
+    DocumentoSerializer,
+    LineaInvestigacionSerializer,
+)
 
 
 class CategoriaDocumentoViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,4 +1,5 @@
 """Django settings for the UNITECA project."""
+
 import os
 from pathlib import Path
 
@@ -13,9 +14,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
 DEBUG = os.environ.get("DEBUG", "1") == "1"
 
 ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "*").split(",")
-    if host.strip()
+    host.strip() for host in os.environ.get("ALLOWED_HOSTS", "*").split(",") if host.strip()
 ]
 
 INSTALLED_APPS = [

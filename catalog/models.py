@@ -1,14 +1,13 @@
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import SearchVectorField
-from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import models
 from django.db.models.functions import ExtractYear, Now
 
 
 class CategoriaDocumento(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True)
 
     class Meta:
         db_table = "categorias_documento"
@@ -21,7 +20,7 @@ class CategoriaDocumento(models.Model):
 
 class LineaInvestigacion(models.Model):
     nombre = models.CharField(max_length=150, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True)
 
     class Meta:
         db_table = "lineas_investigacion"
@@ -41,15 +40,23 @@ class Documento(models.Model):
     titulo = models.CharField(max_length=255)
     resumen = models.TextField()
     categoria = models.ForeignKey(
-        CategoriaDocumento, on_delete=models.PROTECT, db_column="categoria_id", related_name="documentos"
+        CategoriaDocumento,
+        on_delete=models.PROTECT,
+        db_column="categoria_id",
+        related_name="documentos",
     )
     linea = models.ForeignKey(
-        LineaInvestigacion, on_delete=models.PROTECT, db_column="linea_id", related_name="documentos"
+        LineaInvestigacion,
+        on_delete=models.PROTECT,
+        db_column="linea_id",
+        related_name="documentos",
     )
     institucion = models.CharField(max_length=255, default="Universidad / Institución", blank=True)
     anio_publicacion = models.PositiveIntegerField()
-    archivo = models.FileField(upload_to="documentos/%Y/%m/", max_length=255, db_column="url_archivo_pdf")
-    palabras_clave = models.CharField(max_length=255, blank=True, null=True)
+    archivo = models.FileField(
+        upload_to="documentos/%Y/%m/", max_length=255, db_column="url_archivo_pdf"
+    )
+    palabras_clave = models.CharField(max_length=255, blank=True)
     vistas_contador = models.PositiveIntegerField(default=0)
     estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.PUBLICADO)
     fecha_subida = models.DateTimeField(auto_now_add=True)
@@ -96,14 +103,18 @@ class Documento(models.Model):
 
 class DocumentoAutor(models.Model):
     documento = models.ForeignKey(Documento, on_delete=models.CASCADE, db_column="documento_id")
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_column="usuario_id")
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_column="usuario_id"
+    )
 
     class Meta:
         db_table = "documento_autores"
         verbose_name = "autor de documento"
         verbose_name_plural = "autores de documento"
         constraints = [
-            models.UniqueConstraint(fields=["documento", "usuario"], name="documento_autores_unique"),
+            models.UniqueConstraint(
+                fields=["documento", "usuario"], name="documento_autores_unique"
+            ),
         ]
 
     def __str__(self):
@@ -112,7 +123,9 @@ class DocumentoAutor(models.Model):
 
 class DocumentoTutor(models.Model):
     documento = models.ForeignKey(Documento, on_delete=models.CASCADE, db_column="documento_id")
-    tutor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_column="tutor_id")
+    tutor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_column="tutor_id"
+    )
 
     class Meta:
         db_table = "documento_tutores"
@@ -129,10 +142,16 @@ class DocumentoTutor(models.Model):
 class HistorialConsulta(models.Model):
     id = models.BigAutoField(primary_key=True)
     usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_column="usuario_id", related_name="historial_consultas"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column="usuario_id",
+        related_name="historial_consultas",
     )
     documento = models.ForeignKey(
-        Documento, on_delete=models.CASCADE, db_column="documento_id", related_name="historial_consultas"
+        Documento,
+        on_delete=models.CASCADE,
+        db_column="documento_id",
+        related_name="historial_consultas",
     )
     fecha_visualizacion = models.DateTimeField(auto_now_add=True)
 

@@ -74,8 +74,27 @@ jobs:
     name: Tests Django
     runs-on: ubuntu-latest
     needs: lint
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: uniteca
+          POSTGRES_USER: uniteca
+          POSTGRES_PASSWORD: uniteca
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U uniteca -d uniteca"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DJANGO_SECRET_KEY: ci-insecure-secret-key
+      SECRET_KEY: ci-insecure-secret-key
+      POSTGRES_DB: uniteca
+      POSTGRES_USER: uniteca
+      POSTGRES_PASSWORD: uniteca
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
