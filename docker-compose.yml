@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uniteca}
+      POSTGRES_USER: ${POSTGRES_USER:-uniteca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uniteca}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT_HOST:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-uniteca} -d ${POSTGRES_DB:-uniteca}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: bitnamilegacy/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-uniteca}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-uniteca123}
+      MINIO_DEFAULT_BUCKETS: ${MINIO_BUCKET_NAME:-documentos}
+    volumes:
+      - minio_data:/bitnami/minio/data
+    ports:
+      - "${MINIO_PORT_HOST:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT_HOST:-9001}:9001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uniteca}
+      POSTGRES_USER: ${POSTGRES_USER:-uniteca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uniteca}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      DEBUG: ${DEBUG:-1}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-me}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-uniteca}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-uniteca123}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-documentos}
+      MINIO_ENDPOINT: http://minio:9000
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  minio_data:
