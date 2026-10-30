@@ -1,0 +1,170 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Depositar TEG · UNITECa{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl space-y-10">
+
+    <!-- Encabezado despejado (sin la línea de Coordinación...) -->
+    <div class="flex flex-wrap items-end justify-between gap-6 border-b border-rule pb-6">
+        <div>
+            <h1 class="font-serif text-4xl font-medium leading-tight sm:text-5xl">
+                Registro de Trabajo Especial de Grado
+            </h1>
+            <p class="mt-2 max-w-2xl text-lg text-ink-soft">
+                Complete los metadatos del trabajo y adjunte por separado el documento PDF principal
+                y las láminas de la defensa.
+            </p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="boton-secundario">← Volver al catálogo</a>
+    </div>
+
+    {% if upload_success %}
+    <div class="border-l-4 border-unitec bg-sheet p-5">
+        <p class="rotulo text-unitec">Registro completado</p>
+        <p class="mt-1 font-serif text-xl">
+            El trabajo «<em>{{ submitted_title }}</em>» ha sido registrado correctamente.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Formulario estructurado de metadatos y carga de archivos -->
+    <form method="post" action="{% url 'upload' %}" enctype="multipart/form-data" class="space-y-10">
+        {% csrf_token %}
+
+        <!-- Bloque 1: Metadatos del TEG -->
+        <section class="border border-rule bg-sheet p-6 sm:p-8 space-y-6">
+            <h2 class="font-serif text-2xl font-medium border-b border-rule pb-3">
+                1. Información bibliográfica
+            </h2>
+
+            <div class="space-y-6">
+                <div>
+                    <label for="titulo" class="rotulo block">Título del Trabajo Especial de Grado *</label>
+                    <input id="titulo" name="titulo" type="text" required
+                           placeholder="Ej. Sistema de detección temprana de fallas en transformadores de potencia"
+                           class="campo mt-1">
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label for="autor" class="rotulo block">Autor(es) *</label>
+                        <input id="autor" name="autor" type="text" required
+                               placeholder="Nombres y apellidos completos"
+                               class="campo mt-1">
+                    </div>
+
+                    <div>
+                        <label for="tutor" class="rotulo block">Tutor académico *</label>
+                        <input id="tutor" name="tutor" type="text" required
+                               placeholder="Ej. Dra. Valentina Acevedo"
+                               class="campo mt-1">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-12">
+                    <div class="sm:col-span-6">
+                        <label for="carrera" class="rotulo block">Carrera *</label>
+                        <select id="carrera" name="carrera" required class="campo mt-1 cursor-pointer text-base">
+                            {% for grupo in carreras_grupos %}
+                            <optgroup label="{{ grupo.grupo }}" class="bg-sheet text-ink">
+                                {% for c in grupo.carreras %}
+                                <option value="{{ c.nombre }}" class="bg-sheet text-ink">{{ c.nombre }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label for="linea" class="rotulo block">Línea de investigación *</label>
+                        <input id="linea" name="linea" type="text" required
+                               placeholder="Ej. Sistemas de potencia"
+                               class="campo mt-1 text-base">
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label for="fecha_defensa" class="rotulo block">Fecha de defensa *</label>
+                        <input id="fecha_defensa" name="fecha_defensa" type="date" required
+                               value="2026-10-29"
+                               class="campo mt-1 font-mono text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="palabras_clave" class="rotulo block">Palabras clave (separadas por coma) *</label>
+                    <input id="palabras_clave" name="palabras_clave" type="text" required
+                           placeholder="Ej. aprendizaje profundo, transformadores, mantenimiento predictivo"
+                           class="campo mt-1">
+                </div>
+
+                <div>
+                    <label for="resumen" class="rotulo mb-2 block">Resumen *</label>
+                    <textarea id="resumen" name="resumen" rows="4" required
+                              placeholder="Síntesis del problema, metodología empleada y principales resultados..."
+                              class="campo-caja leading-relaxed"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Dos áreas diferenciadas de carga (Drag & Drop con bordes discontinuos) -->
+        <section class="space-y-4">
+            <h2 class="font-serif text-2xl font-medium">
+                2. Archivos digitales del trabajo
+            </h2>
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                <!-- Área Drag & Drop 1: Documento PDF principal del TEG -->
+                <div class="flex flex-col justify-between border-2 border-dashed border-ink/40 bg-sheet p-6 text-center transition-colors hover:border-unitec">
+                    <div class="space-y-2">
+                        <span class="rotulo text-unitec">Archivo 01 · Tomo principal</span>
+                        <h3 class="font-serif text-xl font-medium">
+                            Documento PDF del TEG
+                        </h3>
+                        <p class="text-sm italic text-ink-soft">
+                            Arrastre y suelte el documento completo en formato PDF o selecciónelo desde su equipo.
+                        </p>
+                    </div>
+
+                    <div class="mt-6 border-t border-rule pt-4">
+                        <label for="archivo_pdf" class="boton-secundario w-full cursor-pointer">
+                            Seleccionar archivo PDF
+                        </label>
+                        <input id="archivo_pdf" name="archivo_pdf" type="file" accept=".pdf"
+                               class="mt-2 block w-full font-mono text-xs text-ink-soft file:mr-3 file:border-0 file:bg-paper file:px-2.5 file:py-1 file:font-mono file:text-xs file:text-ink">
+                    </div>
+                </div>
+
+                <!-- Área Drag & Drop 2: Láminas de presentación de la defensa -->
+                <div class="flex flex-col justify-between border-2 border-dashed border-ink/40 bg-sheet p-6 text-center transition-colors hover:border-unitec">
+                    <div class="space-y-2">
+                        <span class="rotulo text-lacre">Archivo 02 · Defensa</span>
+                        <h3 class="font-serif text-xl font-medium">
+                            Láminas de presentación
+                        </h3>
+                        <p class="text-sm italic text-ink-soft">
+                            Arrastre y suelte la presentación utilizada en la defensa (PDF o PPTX).
+                        </p>
+                    </div>
+
+                    <div class="mt-6 border-t border-rule pt-4">
+                        <label for="archivo_laminas" class="boton-secundario w-full cursor-pointer">
+                            Seleccionar presentación
+                        </label>
+                        <input id="archivo_laminas" name="archivo_laminas" type="file" accept=".pdf,.pptx"
+                               class="mt-2 block w-full font-mono text-xs text-ink-soft file:mr-3 file:border-0 file:bg-paper file:px-2.5 file:py-1 file:font-mono file:text-xs file:text-ink">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Acciones finales -->
+        <div class="flex items-center justify-end gap-3 border-t border-rule pt-6">
+            <a href="{% url 'dashboard' %}" class="boton-secundario">Cancelar</a>
+            <button type="submit" class="boton-primario px-6 py-3">Guardar y publicar TEG</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

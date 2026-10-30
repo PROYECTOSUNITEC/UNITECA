@@ -1,0 +1,105 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Acceso · UNITECa{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-5xl space-y-16 py-4">
+
+    <!-- Bloque 1: Formulario centrado y despejado de Inicio de Sesión -->
+    <section class="mx-auto max-w-xl">
+        <div class="text-center">
+            <h1 class="font-serif text-4xl font-medium tracking-tight sm:text-5xl">
+                Acceso al repositorio
+            </h1>
+            <p class="mt-3 text-lg text-ink-soft">
+                Ingrese con sus credenciales institucionales y seleccione su perfil de acceso.
+            </p>
+        </div>
+
+        <form method="get" action="{% url 'dashboard' %}" class="mt-8 border border-rule bg-sheet p-8 sm:p-10 space-y-7">
+            {% csrf_token %}
+
+            <div>
+                <label for="rol_select" class="rotulo block mb-2">Perfil institucional</label>
+                <select id="rol_select" name="rol" class="campo-caja py-2.5 font-sans text-sm cursor-pointer">
+                    <option value="estudiante" {% if selected_role == 'estudiante' %}selected{% endif %}>
+                        Estudiante (consulta y lectura en línea)
+                    </option>
+                    <option value="academico" {% if selected_role == 'academico' or not selected_role %}selected{% endif %}>
+                        Personal Académico (lectura y descarga de archivos)
+                    </option>
+                    <option value="admin" {% if selected_role == 'admin' %}selected{% endif %}>
+                        Administrador (depósito y gestión del catálogo)
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label for="email" class="rotulo block">Correo institucional</label>
+                <input id="email" name="email" type="email" required
+                       value="v.acevedo@unitec.edu.ve"
+                       placeholder="usuario@unitec.edu.ve"
+                       class="campo mt-1">
+            </div>
+
+            <div>
+                <label for="password" class="rotulo block">Contraseña</label>
+                <input id="password" name="password" type="password" required
+                       value="contrasena-demo"
+                       class="campo mt-1">
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="boton-primario w-full py-3">
+                    Iniciar sesión
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Bloque 2: Perfiles y permisos desgranados en tres tarjetas separadas -->
+    <section class="border-t border-rule pt-12">
+        <div class="max-w-2xl">
+            <p class="rotulo">Niveles de acceso</p>
+            <h2 class="mt-1 font-serif text-3xl font-medium">
+                Segmentación de permisos por rol
+            </h2>
+            <p class="mt-2 text-base text-ink-soft">
+                Cada cuenta tiene asignados los permisos correspondientes a su función dentro de la universidad.
+            </p>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3">
+            {% for role in role_matrix %}
+            <div class="flex flex-col justify-between border border-rule bg-sheet p-6">
+                <div>
+                    <div class="flex items-baseline justify-between border-b border-rule pb-3">
+                        <h3 class="font-serif text-2xl font-medium">{{ role.name }}</h3>
+                        <span class="font-mono text-xs text-unitec">0{{ forloop.counter }}</span>
+                    </div>
+
+                    <p class="mt-4 text-base leading-relaxed text-ink-soft">
+                        {{ role.summary }}
+                    </p>
+
+                    <ul class="mt-5 space-y-2 text-sm text-ink">
+                        {% for perm in role.permissions %}
+                        <li class="flex items-center gap-2">
+                            <span class="text-unitec">·</span>
+                            <span>{{ perm }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <p class="mt-6 border-t border-rule pt-3 font-mono text-xs text-ink-soft">
+                    {{ role.restriction }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

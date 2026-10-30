@@ -1,0 +1,242 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ teg.titulo }} · UNITECa{% endblock %}
+
+{% block content %}
+<div class="space-y-12">
+
+    <!-- Barra superior: regreso al catálogo y selector de rol -->
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-rule pb-4">
+        <a href="{% url 'dashboard' %}" class="enlace font-sans text-xs uppercase tracking-wider">
+            ← Volver al catálogo
+        </a>
+
+        <div class="flex items-center gap-1.5 font-sans text-xs">
+            <span class="rotulo mr-1">Vista por rol:</span>
+            <a href="{% url 'detalle' teg.id %}?rol=estudiante"
+               class="rounded-[2px] border px-2.5 py-1 uppercase tracking-wider {% if current_user.role_key == 'estudiante' %}border-ink bg-ink text-paper{% else %}border-rule text-ink-soft hover:text-ink{% endif %}">
+                Estudiante
+            </a>
+            <a href="{% url 'detalle' teg.id %}?rol=academico"
+               class="rounded-[2px] border px-2.5 py-1 uppercase tracking-wider {% if current_user.role_key == 'academico' %}border-ink bg-ink text-paper{% else %}border-rule text-ink-soft hover:text-ink{% endif %}">
+                Académico
+            </a>
+            <a href="{% url 'detalle' teg.id %}?rol=admin"
+               class="rounded-[2px] border px-2.5 py-1 uppercase tracking-wider {% if current_user.role_key == 'admin' %}border-ink bg-ink text-paper{% else %}border-rule text-ink-soft hover:text-ink{% endif %}">
+                Administrador
+            </a>
+        </div>
+    </div>
+
+    <!-- Panel superior: Metadatos del TEG y opciones de descarga según rol -->
+    <section class="grid grid-cols-1 gap-10 lg:grid-cols-12">
+        <div class="lg:col-span-8">
+            <p class="rotulo" style="color: {{ teg.carrera_color }};">
+                {{ teg.carrera }} · {{ teg.linea }}
+            </p>
+
+            <h1 class="mt-2 font-serif text-3xl font-medium leading-tight tracking-tight sm:text-4xl">
+                {{ teg.titulo }}
+            </h1>
+
+            <div class="mt-4 border-y border-rule py-3.5 text-base">
+                <span class="versalitas text-lg font-semibold">{{ teg.autor }}</span>
+                <span class="mx-2 text-ink-soft">·</span>
+                <span class="italic text-ink-soft">Tutor: {{ teg.tutor }}</span>
+                <span class="mx-2 text-ink-soft">·</span>
+                <span class="text-ink-soft">{{ teg.fecha_larga }}</span>
+            </div>
+
+            <!-- Resumen -->
+            <div class="mt-6">
+                <h2 class="rotulo mb-2">Resumen</h2>
+                <p class="text-lg leading-relaxed text-ink">
+                    {{ teg.resumen }}
+                </p>
+            </div>
+
+            <!-- Cita APA -->
+            <div class="mt-6 border border-rule bg-sheet p-4">
+                <span class="rotulo block">Cita bibliográfica (APA 7)</span>
+                <p class="mt-1.5 font-serif text-sm leading-relaxed text-ink-soft select-all">
+                    {{ teg.autores_apa }} ({{ teg.anio }}). <em>{{ teg.titulo }}</em> [Trabajo Especial de Grado, {{ teg.carrera }}, Universidad Tecnológica del Centro]. UNITECa ({{ teg.signatura }}).
+                </p>
+            </div>
+        </div>
+
+        <!-- Panel lateral de descargas y ficha corta -->
+        <aside class="lg:col-span-4 space-y-6">
+            <div class="border border-rule bg-sheet p-6">
+                <div class="flex items-center justify-between border-b border-rule pb-3">
+                    <span class="rotulo">Descarga de archivos</span>
+                    <span class="font-mono text-xs text-unitec">{{ current_user.role_label }}</span>
+                </div>
+
+                {% if current_user.can_download %}
+                <div class="mt-4 space-y-3">
+                    <a href="#visor-split" class="boton-primario w-full justify-between">
+                        <span>↓ Descargar tomo PDF</span>
+                        <span class="font-mono text-xs opacity-90">{{ teg.peso_pdf }}</span>
+                    </a>
+                    <a href="#visor-split" class="boton-secundario w-full justify-between">
+                        <span>↓ Descargar láminas</span>
+                        <span class="font-mono text-xs">{{ teg.peso_laminas }}</span>
+                    </a>
+                    {% if current_user.can_manage %}
+                    <a href="{% url 'upload' %}" class="boton-secundario w-full">
+                        Editar registro
+                    </a>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="mt-4 space-y-3">
+                    <button type="button" disabled class="boton-inactivo w-full">
+                        Descargar tomo PDF ({{ teg.peso_pdf }})
+                    </button>
+                    <button type="button" disabled class="boton-inactivo w-full">
+                        Descargar láminas ({{ teg.peso_laminas }})
+                    </button>
+                    <p class="text-sm italic text-ink-soft">
+                        El rol de <strong>Estudiante</strong> cuenta con lectura completa en línea. La descarga está reservada al Personal Académico.
+                    </p>
+                </div>
+                {% endif %}
+
+                <dl class="mt-6 divide-y divide-rule border-t border-rule text-sm">
+                    <div class="flex justify-between py-2">
+                        <dt class="text-ink-soft">Signatura</dt>
+                        <dd class="font-mono">{{ teg.signatura }}</dd>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <dt class="text-ink-soft">Extensión</dt>
+                        <dd class="font-mono">{{ teg.paginas }} pp. · {{ teg.laminas }} láminas</dd>
+                    </div>
+                    {% if teg.mencion %}
+                    <div class="flex justify-between py-2">
+                        <dt class="text-ink-soft">Distinción</dt>
+                        <dd class="font-medium text-lacre">Mención {{ teg.mencion }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+        </aside>
+    </section>
+
+    <!-- Vista dividida (Split-View) en dos columnas: PDF Principal + Láminas de Defensa -->
+    <section id="visor-split" class="space-y-5 border-t border-rule pt-8">
+        <h2 class="font-serif text-2xl font-medium">
+            Lectura paralela: documento principal y presentación de defensa
+        </h2>
+
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+
+            <!-- Columna 1: Visor del Documento PDF Principal del TEG -->
+            <div class="flex flex-col border border-rule bg-sheet">
+                <div class="flex items-center justify-between border-b border-rule bg-paper px-4 py-2.5">
+                    <span class="font-sans text-xs font-semibold uppercase tracking-[0.12em]">
+                        Documento PDF principal
+                    </span>
+                    <span class="font-mono text-xs text-ink-soft">
+                        Pág. 1 de {{ teg.paginas }}
+                    </span>
+                </div>
+
+                <div class="flex-1 bg-paper/50 p-5 sm:p-7">
+                    <div class="mx-auto max-w-xl border border-rule bg-sheet p-7 sm:p-8">
+                        <div class="border-b border-rule pb-5 text-center">
+                            <img src="{% static 'core/img/escudo_unitec.png' %}" alt="Escudo UNITEC" class="mx-auto h-11 w-auto">
+                            <p class="mt-2 font-sans text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                                Universidad Tecnológica del Centro
+                            </p>
+                            <p class="font-serif text-sm italic text-ink-soft">{{ teg.carrera }}</p>
+                            <h3 class="mt-4 font-serif text-xl font-medium leading-snug">
+                                {{ teg.titulo }}
+                            </h3>
+                            <p class="mt-3 versalitas text-base">{{ teg.autor }}</p>
+                            <p class="mt-1 font-serif text-xs italic text-ink-soft">
+                                Tutor: {{ teg.tutor }} · Caracas, {{ teg.mes_anio }}
+                            </p>
+                        </div>
+
+                        <div class="mt-5">
+                            <p class="rotulo mb-2.5">Contenido del documento</p>
+                            <ol class="space-y-1.5 text-sm">
+                                {% for cap in capitulos %}
+                                <li class="flex items-baseline">
+                                    <span>
+                                        {% if cap.numero %}<span class="font-mono text-xs text-ink-soft mr-1">Cap. {{ cap.numero }}.</span>{% endif %}
+                                        {{ cap.titulo }}
+                                    </span>
+                                    <span class="guias"></span>
+                                    <span class="font-mono text-xs text-ink-soft">{{ cap.pagina }}</span>
+                                </li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-rule bg-paper px-4 py-2 font-mono text-xs text-ink-soft">
+                    <span>{{ teg.archivo_pdf }}</span>
+                    <span>{{ teg.peso_pdf }}</span>
+                </div>
+            </div>
+
+            <!-- Columna 2: Visor de las Láminas de Presentación de la Defensa -->
+            <div class="flex flex-col border border-rule bg-sheet">
+                <div class="flex items-center justify-between border-b border-rule bg-paper px-4 py-2.5">
+                    <span class="font-sans text-xs font-semibold uppercase tracking-[0.12em]">
+                        Láminas de presentación de la defensa
+                    </span>
+                    <span class="font-mono text-xs text-ink-soft">
+                        Lámina 1 de {{ teg.laminas }}
+                    </span>
+                </div>
+
+                <div class="flex-1 flex flex-col justify-between gap-5 bg-paper/50 p-5 sm:p-7">
+                    <div class="aspect-video w-full border border-rule bg-sheet p-6 flex flex-col justify-between"
+                         style="border-left: 5px solid {{ teg.carrera_color }};">
+                        <div class="flex items-center justify-between border-b border-rule pb-2">
+                            <span class="rotulo">Defensa de TEG · {{ teg.codigo }}</span>
+                            <span class="font-mono text-xs text-ink-soft">01 / {{ teg.laminas }}</span>
+                        </div>
+
+                        <div class="my-auto py-3">
+                            <p class="font-sans text-xs font-semibold uppercase tracking-wider" style="color: {{ teg.carrera_color }};">
+                                {{ teg.carrera }}
+                            </p>
+                            <h3 class="mt-1.5 font-serif text-xl font-medium leading-snug">
+                                {{ teg.titulo }}
+                            </h3>
+                            <p class="mt-2.5 text-sm text-ink-soft">
+                                {{ teg.autor }} · Tutor: {{ teg.tutor }}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-rule pt-2 font-mono text-[0.68rem] text-ink-soft">
+                            <span>Caracas, Venezuela</span>
+                            <span>{{ teg.fecha_defensa }}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                        {% for slide in slides_preview %}
+                        <div class="border p-2.5 {% if forloop.first %}border-unitec bg-sheet{% else %}border-rule bg-paper/70{% endif %}">
+                            <span class="font-mono text-[0.65rem] text-unitec">0{{ forloop.counter }}</span>
+                            <p class="mt-0.5 truncate font-serif text-sm font-medium">{{ slide.titulo }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-rule bg-paper px-4 py-2 font-mono text-xs text-ink-soft">
+                    <span>{{ teg.archivo_laminas }}</span>
+                    <span>{{ teg.peso_laminas }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
