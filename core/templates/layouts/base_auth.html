@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UNITECa · Acceso{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/escudo_unitec.png' %}">
+
+    <script>
+        (function () {
+            try {
+                var tema = localStorage.getItem('uniteca-tema');
+                var prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (tema === 'oscuro' || (!tema && prefiereOscuro)) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { }
+        })();
+        function alternarTema() {
+            var oscuro = document.documentElement.classList.toggle('dark');
+            try { localStorage.setItem('uniteca-tema', oscuro ? 'oscuro' : 'claro'); } catch (e) { }
+        }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'bootstrap-icons/bootstrap-icons.css' %}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        paper: 'rgb(var(--paper) / <alpha-value>)',
+                        sheet: 'rgb(var(--sheet) / <alpha-value>)',
+                        ink: 'rgb(var(--ink) / <alpha-value>)',
+                        'ink-soft': 'rgb(var(--ink-soft) / <alpha-value>)',
+                        rule: 'rgb(var(--rule) / <alpha-value>)',
+                        unitec: 'rgb(var(--unitec) / <alpha-value>)',
+                        lacre: 'rgb(var(--lacre) / <alpha-value>)',
+                        libro: 'rgb(var(--libro) / <alpha-value>)',
+                    },
+                    fontFamily: {
+                        serif: ['"EB Garamond"', 'Garamond', 'Georgia', 'serif'],
+                        sans: ['"IBM Plex Sans Condensed"', 'Arial Narrow', 'system-ui', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        :root {
+            --paper: 244 239 228;
+            --sheet: 251 248 241;
+            --ink: 27 26 23;
+            --ink-soft: 96 91 81;
+            --rule: 214 205 187;
+            --unitec: 18 64 154;
+            --lacre: 142 44 36;
+            --libro: 207 207 207;
+            color-scheme: light;
+        }
+        .dark {
+            --paper: 15 20 29;
+            --sheet: 22 28 40;
+            --ink: 232 226 211;
+            --ink-soft: 163 158 145;
+            --rule: 46 54 71;
+            --unitec: 134 166 232;
+            --lacre: 212 119 107;
+            --libro: 58 66 83;
+            color-scheme: dark;
+        }
+    </style>
+
+    <style type="text/tailwindcss">
+        @layer base {
+            html { font-size: 17px; }
+            body {
+                @apply bg-paper text-ink font-serif antialiased;
+                font-feature-settings: "onum" 1, "kern" 1, "liga" 1;
+            }
+            ::selection { @apply bg-unitec text-paper; }
+        }
+        @layer components {
+            .rotulo { @apply font-sans text-[0.68rem] font-medium uppercase text-ink-soft; letter-spacing: 0.16em; }
+            .regla-doble { @apply h-[3px] border-b border-t-[3px] border-ink; box-sizing: content-box; }
+            .boton {
+                @apply inline-flex items-center justify-center gap-2 rounded-[2px] border px-4 py-2
+                font-sans text-[0.78rem] font-semibold uppercase transition-colors;
+                letter-spacing: 0.1em;
+            }
+            .boton-primario { @apply boton border-unitec bg-unitec text-paper hover:bg-ink hover:border-ink; }
+            .enlace { @apply text-unitec underline decoration-unitec/30 underline-offset-[3px] hover:decoration-unitec; }
+            .campo {
+                @apply w-full border-0 border-b border-ink/40 bg-transparent px-0 py-2 font-serif text-lg
+                text-ink placeholder:italic placeholder:text-ink-soft/60 focus:border-unitec focus:outline-none focus:ring-0;
+            }
+            .placa-escudo { @apply inline-flex items-center justify-center; }
+            .dark .placa-escudo { @apply rounded-[2px] bg-[#F4EFE4] p-1; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="flex min-h-screen flex-col">
+
+    <!-- Franja institucional -->
+    <div class="bg-ink text-paper">
+        <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-1.5 font-sans text-[0.66rem] uppercase tracking-[0.18em] lg:px-8">
+            <span>Universidad Tecnológica del Centro</span>
+            <span class="font-mono normal-case tracking-normal opacity-80">Caracas, Venezuela</span>
+        </div>
+    </div>
+
+    <!-- Cabecera mínima -->
+    <header class="mx-auto w-full max-w-5xl px-5 pt-7 lg:px-8">
+        <div class="flex items-center justify-between gap-4">
+            <a href="{% url 'login' %}" class="group flex items-center gap-4">
+                <span class="placa-escudo">
+                    <img src="{% static 'img/escudo_unitec.png' %}" alt="Escudo UNITEC" class="h-14 w-auto">
+                </span>
+                <span class="block border-l border-rule pl-4">
+                    <span class="block font-serif text-[2.2rem] font-medium leading-none tracking-tight">
+                        UNITEC<span class="italic text-unitec">a</span>
+                    </span>
+                    <span class="mt-1 block font-serif text-[0.92rem] italic text-ink-soft">
+                        Repositorio de Trabajos Especiales de Grado
+                    </span>
+                </span>
+            </a>
+
+            <button type="button" onclick="alternarTema()"
+                class="flex h-10 items-center gap-2 rounded-[2px] border border-rule px-3 font-sans text-[0.7rem] uppercase tracking-[0.12em] text-ink-soft transition-colors hover:border-ink hover:text-ink"
+                title="Cambiar entre lectura diurna y nocturna">
+                <span class="text-base leading-none dark:hidden">☾</span>
+                <span class="hidden text-base leading-none dark:inline">☀</span>
+                <span class="hidden sm:inline dark:hidden">Nocturno</span>
+                <span class="hidden sm:dark:inline">Diurno</span>
+            </button>
+        </div>
+        <div class="regla-doble mt-5"></div>
+    </header>
+
+    <!-- Contenido -->
+    <main class="mx-auto w-full max-w-5xl flex-1 px-5 py-10 lg:px-8 flex flex-col justify-center">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Pie mínimo -->
+    <footer class="mx-auto w-full max-w-5xl px-5 pb-8 text-center font-sans text-xs uppercase tracking-wider text-ink-soft">
+        <div class="border-t border-rule pt-6">
+            Universidad Tecnológica del Centro · Repositorio Institucional
+        </div>
+    </footer>
+
+    <!-- Dependencias globales JS -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/sweetalert2.min.js' %}"></script>
+    
+    <!-- Tu archivo utils.js con validaciones y alertas -->
+    <script src="{% static 'js/utils.js' %}"></script>
+
+    <script>
+        // Capturar mensajes de Django para mostrar con SweetAlert2
+        {% if messages %}
+        {% for message in messages %}
+            sAlert("{{message.tags|escapejs}}","{{message|escapejs}}")
+        {% endfor %}
+        {% endif %}
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

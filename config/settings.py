@@ -120,3 +120,39 @@ AWS_DEFAULT_ACL = None
 AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = True
 AWS_QUERYSTRING_EXPIRE = 3600
+
+
+#sesión
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 28800  #8 Horas
+
+
+# CONFIGURACIÓN DEL SERVICIO DE CORREO (SMTP / CONSOLA)
+
+# 1. Leer las variables del .env de forma segura
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
+# Ponemos el puerto 465 por defecto que corresponde a TLS
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 465)) 
+
+# 2. Configuración dinámica según el entorno (Producción / Desarrollo)
+if not DEBUG:
+    # Producción (Apache)
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS") == "True"
+    EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL") == "True"
+else:
+    # Desarrollo local
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    EMAIL_USE_TLS = False
+    EMAIL_USE_SSL = False
+
+# 3. ¡REMITENTE POR DEFECTO CRUCIAL PARA GOOGLE!
+# Esto evita que Google rechace el correo por remitente inválido
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER # Remitente
+SERVER_EMAIL = EMAIL_HOST_USER  # Usado para los correos de error.
+
+# Configuración de recuperación de contraseñas PREGUNTAR
+PASSWORD_RESET_TIMEOUT = 900 # 15 minutos en segundos

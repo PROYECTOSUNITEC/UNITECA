@@ -1,0 +1,122 @@
+{% extends "layouts/base_auth.html" %}
+{% load static %}
+
+{% block title %}Registro institucional · UNITECa{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-xl w-full">
+    <div class="border border-rule bg-sheet p-8 sm:p-12 shadow-sm space-y-8">
+        <div class="text-center">
+            <h1 class="font-serif text-3xl font-medium tracking-tight">
+                Solicitud de cuenta
+            </h1>
+            <p class="mt-2 text-base text-ink-soft">
+                Complete el formulario con sus datos institucionales para registrarse en el repositorio.
+            </p>
+        </div>
+
+        <form id="formRegister" class="space-y-6" autocomplete="off">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="nombre" class="rotulo block">Nombre</label>
+                    <input id="nombre" name="nombre" type="text" required
+                           placeholder="Nombre"
+                           class="campo mt-1 solotexto upper">
+                </div>
+                <div>
+                    <label for="apellido" class="rotulo block">Apellido</label>
+                    <input id="apellido" name="apellido" type="text" required
+                           placeholder="Apellido"
+                           class="campo mt-1 solotexto upper">
+                </div>
+            </div>
+
+            <div>
+                <label for="email" class="rotulo block">Correo institucional (@unitec.edu.ve)</label>
+                <input id="email" name="email" type="email" required
+                       placeholder="usuario@unitec.edu.ve"
+                       class="campo mt-1 soloemail">
+            </div>
+
+            <div>
+                <label for="password" class="rotulo block">Contraseña</label>
+                <div class="relative mt-1">
+                    <input id="password" name="password" type="password" required
+                           placeholder="Mínimo 8 caracteres"
+                           class="campo password pr-10">
+                    <button type="button" data-target="password"
+                            class="togglePassword absolute inset-y-0 right-0 flex items-center px-3 text-ink-soft hover:text-ink">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <p id="divErrorRegex" class="mt-1.5 text-xs font-sans font-medium text-red-600"></p>
+                </div>
+            </div>
+
+            <div class="pt-2 space-y-4">
+                <button type="submit" id="btnRegister" class="boton-primario w-full py-3">
+                    Registrarse
+                </button>
+                <p class="text-center font-sans text-xs uppercase tracking-wider text-ink-soft">
+                    ¿Ya posee una cuenta? 
+                    <a href="{% url 'login' %}" class="enlace normal-case font-serif text-base">Iniciar sesión</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('formRegister').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const btnRegister = document.getElementById('btnRegister');
+
+        btnRegister.disabled = true;
+        btnRegister.textContent = 'Procesando registro...';
+
+        try {
+            const response = await fetch('/api/accounts/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    nombre: nombre,
+                    apellido: apellido,
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                sAlert('alert-success', data.detail || 'Su cuenta institucional ha sido creada correctamente.');
+                setTimeout(() => {
+                    window.location.href = "{% url 'login' %}";
+                }, 1800);
+            } else {
+                let errorMsg = 'No se pudo completar el registro.';
+                if (typeof data === 'object' && data !== null) {
+                    errorMsg = Object.values(data).flat().join(' ');
+                }
+                sAlert('alert-danger', errorMsg);
+            }
+        } catch (error) {
+            sAlert('alert-danger', 'No se pudo contactar con el servidor.');
+        } finally {
+            btnRegister.disabled = false;
+            btnRegister.textContent = 'Registrarse';
+        }
+    });
+</script>
+{% endblock %}

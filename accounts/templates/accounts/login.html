@@ -1,0 +1,105 @@
+{% extends "layouts/base_auth.html" %}
+{% load static %}
+
+{% block title %}Acceso · UNITECa{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-xl w-full">
+    <div class="border border-rule bg-sheet p-8 sm:p-12 shadow-sm space-y-8">
+        <div class="text-center">
+            <h1 class="font-serif text-3xl font-medium tracking-tight">
+                Acceso institucional
+            </h1>
+            <p class="mt-2 text-base text-ink-soft">
+                Ingrese sus credenciales para acceder al repositorio.
+            </p>
+        </div>
+
+        <form id="formLogin" class="space-y-6" autocomplete="off">
+            {% csrf_token %}
+            
+            <div>
+                <label for="email" class="rotulo block">Correo institucional</label>
+                <!-- Usamos .soloemail para que utils.js aplique las restricciones -->
+                <input id="email" name="email" type="email" required
+                       placeholder="usuario@unitec.edu.ve"
+                       class="campo mt-1 soloemail">
+            </div>
+
+            <div>
+                <div class="flex items-baseline justify-between">
+                    <label for="password" class="rotulo block">Contraseña</label>
+                    <a href="{% url 'recovery' %}" class="enlace font-sans text-xs uppercase tracking-wider">
+                        ¿Olvidó su clave?
+                    </a>
+                </div>
+                <div class="relative mt-1">
+                    <input id="password" name="password" type="password" required
+                           placeholder="••••••••"
+                           class="campo password pr-10">
+                    <button type="button" data-target="password"
+                            class="togglePassword absolute inset-y-0 right-0 flex items-center px-3 text-ink-soft hover:text-ink">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-2 space-y-4">
+                <button type="submit" id="btnSubmit" class="boton-primario w-full py-3">
+                    Iniciar sesión
+                </button>
+                <p class="text-center font-sans text-xs uppercase tracking-wider text-ink-soft">
+                    ¿Aún no tiene cuenta? 
+                    <a href="{% url 'register' %}" class="enlace normal-case font-serif text-base">Solicitar registro</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('formLogin').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const emailInput = document.getElementById('email').value.trim();
+        const passwordInput = document.getElementById('password').value;
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Verificando...';
+
+        try {
+            // Usando tu función getCookie('csrftoken') que ya está en utils.js
+            const response = await fetch('/api/accounts/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    email: emailInput,
+                    password: passwordInput
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                sAlert('alert-success', 'Bienvenido al repositorio UNITECa.');
+                setTimeout(() => {
+                    window.location.href = "{% url 'dashboard' %}";
+                }, 1500);
+            } else {
+                sAlert('alert-danger', data.detail || 'Verifique su correo institucional y contraseña.');
+            }
+        } catch (error) {
+            sAlert('alert-danger', 'No se pudo contactar con el servidor de autenticación.');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Iniciar sesión';
+        }
+    });
+</script>
+{% endblock %}

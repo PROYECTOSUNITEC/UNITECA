@@ -1,0 +1,80 @@
+{% extends "layouts/base_auth.html" %}
+{% load static %}
+
+{% block title %}Recuperación de clave · UNITECa{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-xl w-full">
+    <div class="border border-rule bg-sheet p-8 sm:p-12 shadow-sm space-y-8">
+        <div class="text-center">
+            <h1 class="font-serif text-3xl font-medium tracking-tight">
+                Recuperación de contraseña
+            </h1>
+            <p class="mt-2 text-base text-ink-soft">
+                Ingrese su correo institucional y le enviaremos las instrucciones para restablecer su clave.
+            </p>
+        </div>
+
+        <form id="formRecovery" class="space-y-6" autocomplete="off">
+            {% csrf_token %}
+            
+            <div>
+                <label for="email" class="rotulo block">Correo institucional</label>
+                <input id="email" name="email" type="email" required
+                       placeholder="usuario@unitec.edu.ve"
+                       class="campo mt-1 soloemail">
+            </div>
+
+            <div class="pt-2 space-y-4">
+                <button type="submit" id="btnRecovery" class="boton-primario w-full py-3">
+                    Enviar instrucciones
+                </button>
+                <p class="text-center font-sans text-xs uppercase tracking-wider text-ink-soft">
+                    <a href="{% url 'login' %}" class="enlace normal-case font-serif text-base">← Volver al inicio de sesión</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('formRecovery').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value.trim();
+        const btnRecovery = document.getElementById('btnRecovery');
+
+        btnRecovery.disabled = true;
+        btnRecovery.textContent = 'Enviando...';
+
+        try {
+            const response = await fetch('/api/accounts/password-reset/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ email: email })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                sAlert('alert-success', 'Si el correo está registrado, recibirá las instrucciones de recuperación.');
+                setTimeout(() => {
+                    window.location.href = "{% url 'login' %}";
+                }, 2500);
+            } else {
+                sAlert('alert-danger', data.error || 'Verifique el correo ingresado.');
+            }
+        } catch (error) {
+            sAlert('alert-danger', 'No se pudo contactar con el servidor.');
+        } finally {
+            btnRecovery.disabled = false;
+            btnRecovery.textContent = 'Enviar instrucciones';
+        }
+    });
+</script>
+{% endblock %}
